@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useDashboard } from '../dashboard/context';
+import { useDashboard, Lead } from '../dashboard/context';
 import { API_URL } from '@/config';
 
 export default function FupsPosPage() {
@@ -21,7 +21,7 @@ export default function FupsPosPage() {
     }
   }, [token, selectedClinicaId]);
 
-  const handleUpdateFup = async (leadId: number, payload: any) => {
+  const handleUpdateFup = async (leadId: number, payload: Partial<Lead>) => {
     if (!token || !selectedClinicaId) return;
 
     try {
@@ -48,14 +48,14 @@ export default function FupsPosPage() {
     return consultation.data_hora;
   };
 
-  const getFupDate = (dataConsulta: string | undefined, daysToAdd: number) => {
+  const getFupDate = (dataConsulta: string | null | undefined, daysToAdd: number) => {
     if (!dataConsulta) return null;
     let dt = new Date(dataConsulta);
     dt.setDate(dt.getDate() + daysToAdd);
     return dt;
   };
 
-  const getFupStatus = (dataConsulta: string | undefined, daysToAdd: number, done: boolean | undefined) => {
+  const getFupStatus = (dataConsulta: string | null | undefined, daysToAdd: number, done: boolean | null | undefined) => {
     if (done) return { label: 'Concluído', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
     const deadline = getFupDate(dataConsulta, daysToAdd);
     if (!deadline) return { label: 'Agendado', color: 'bg-indigo-50 text-indigo-700 border-indigo-200 font-bold' };
@@ -71,7 +71,7 @@ export default function FupsPosPage() {
   };
 
   // 1. Must have compared (compareceu === true)
-  const filteredLeads = leads.filter((l) => l.compareceu);
+  const filteredLeads = leads.filter((l: Lead) => l.compareceu);
 
   return (
     <div className="flex flex-col gap-6 select-none px-2 py-4">
@@ -100,7 +100,7 @@ export default function FupsPosPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {filteredLeads.map((l) => {
+                {filteredLeads.map((l: Lead) => {
                   const dataConsulta = getLeadConsultationDate(l.id);
                   const status1 = getFupStatus(dataConsulta, 1, l.pos_fup1_feito);
                   const status2 = getFupStatus(dataConsulta, 8, l.pos_fup2_feito);
@@ -232,7 +232,7 @@ export default function FupsPosPage() {
                       <td className="py-4 px-4 whitespace-nowrap">
                         <select
                           value={l.resultado_pos_fup || ''}
-                          onChange={(e) => handleUpdateFup(l.id, { resultado_pos_fup: e.target.value === '' ? null : e.target.value })}
+                          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleUpdateFup(l.id, { resultado_pos_fup: e.target.value === '' ? null : e.target.value })}
                           className={`text-xs font-bold px-3 py-1 rounded-xl border focus:outline-none transition cursor-pointer ${
                             l.resultado_pos_fup === 'DESISTIU'
                               ? 'bg-rose-50 text-rose-700 border-rose-200'

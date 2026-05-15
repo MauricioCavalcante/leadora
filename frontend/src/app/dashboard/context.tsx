@@ -18,41 +18,41 @@ export interface Origem {
 export interface Lead {
   id: number;
   nome: string;
-  email?: string;
+  email?: string | null;
   telefone: string;
-  data_nascimento?: string;
+  data_nascimento?: string | null;
   status: string;
   faltas: number;
-  created_at?: string;
-  origem?: { id: number; nome: string };
-  origem_manual?: string;
-  interesse?: { id: number; nome: string };
-  interesse_manual?: string;
-  compareceu?: boolean;
-  fup1_feito?: boolean;
-  fup2_feito?: boolean;
-  fup3_feito?: boolean;
-  fup4_feito?: boolean;
-  pos_fup1_feito?: boolean;
-  pos_fup2_feito?: boolean;
-  pos_fup3_feito?: boolean;
-  data_primeiro_contato?: string;
-  observacoes?: string;
-  salvar_contato?: boolean;
-  resultado_fup?: string;
-  resultado_pos_fup?: string;
+  created_at?: string | null;
+  origem?: { id: number; nome: string } | null;
+  origem_manual?: string | null;
+  interesse?: { id: number; nome: string } | null;
+  interesse_manual?: string | null;
+  compareceu?: boolean | null;
+  fup1_feito?: boolean | null;
+  fup2_feito?: boolean | null;
+  fup3_feito?: boolean | null;
+  fup4_feito?: boolean | null;
+  pos_fup1_feito?: boolean | null;
+  pos_fup2_feito?: boolean | null;
+  pos_fup3_feito?: boolean | null;
+  data_primeiro_contato?: string | null;
+  observacoes?: string | null;
+  salvar_contato?: boolean | null;
+  resultado_fup?: string | null;
+  resultado_pos_fup?: string | null;
 }
 
 export interface Consulta {
   id: number;
   lead: Lead;
   data_hora: string;
-  observacoes?: string;
-  status?: string;
-  data_lembrete?: string;
-  valor?: number;
-  resolvido?: boolean;
-  clinica?: { id: number; nome: string };
+  observacoes?: string | null;
+  status?: string | null;
+  data_lembrete?: string | null;
+  valor?: number | null;
+  resolvido?: boolean | null;
+  clinica?: { id: number; nome: string } | null;
 }
 
 export interface Tarefa {

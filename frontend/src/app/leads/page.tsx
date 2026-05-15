@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useDashboard } from '../dashboard/context';
+import { useDashboard, Lead, Origem, Interesse } from '../dashboard/context';
 import { API_URL } from '@/config';
 
 export default function LeadsPage() {
@@ -19,7 +19,7 @@ export default function LeadsPage() {
   } = useDashboard();
 
   const [isCreatingLead, setIsCreatingLead] = useState(false);
-  const [editLead, setEditLead] = useState<any>(null);
+  const [editLead, setEditLead] = useState<Lead | null>(null);
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [telefone, setTelefone] = useState('');
@@ -28,9 +28,9 @@ export default function LeadsPage() {
   const [observacoes, setObservacoes] = useState('');
   const [status, setStatus] = useState('');
   const [faltas, setFaltas] = useState(0);
-  const [selectedInteresseId, setSelectedInteresseId] = useState<any>('');
+  const [selectedInteresseId, setSelectedInteresseId] = useState<number | 'NOVO' | ''>('');
   const [novoInteresseNome, setNovoInteresseNome] = useState('');
-  const [selectedOrigemId, setSelectedOrigemId] = useState<any>('');
+  const [selectedOrigemId, setSelectedOrigemId] = useState<number | 'NOVO' | ''>('');
   const [novoOrigemNome, setNovoOrigemNome] = useState('');
   const [compareceu, setCompareceu] = useState(false);
   const [resultadoFup, setResultadoFup] = useState('');
@@ -47,7 +47,7 @@ export default function LeadsPage() {
     }
   }, [token, selectedClinicaId]);
 
-  const openEditModal = (lead: any) => {
+  const openEditModal = (lead: Lead) => {
     setEditLead(lead);
     setNome(lead.nome || '');
     setEmail(lead.email || '');
@@ -194,7 +194,7 @@ export default function LeadsPage() {
     if (!token || !selectedClinicaId) return;
 
     const nextFaltas = Math.max(0, currentFaltas + delta);
-    const updatedLeads = leads.map((l: any) => (l.id === leadId ? { ...l, faltas: nextFaltas } : l));
+    const updatedLeads = leads.map((l: Lead) => (l.id === leadId ? { ...l, faltas: nextFaltas } : l));
     setLeads(updatedLeads);
 
     try {
@@ -251,7 +251,7 @@ export default function LeadsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {leads.map((l: any) => (
+                {leads.map((l: Lead) => (
                   <tr key={l.id} className="hover:bg-slate-50/60 transition">
                     <td className="py-3.5 px-4">
                       <div className="flex flex-col gap-0.5">
@@ -350,7 +350,7 @@ export default function LeadsPage() {
                     type="text"
                     required
                     value={nome}
-                    onChange={(e: any) => setNome(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNome(e.target.value)}
                     className="w-full text-xs bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200/80 focus:border-brand-blue rounded-xl px-3.5 py-2.5 outline-none font-bold text-slate-800 transition"
                   />
                 </div>
@@ -361,7 +361,7 @@ export default function LeadsPage() {
                     type="text"
                     required
                     value={telefone}
-                    onChange={(e: any) => setTelefone(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTelefone(e.target.value)}
                     className="w-full text-xs bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200/80 focus:border-brand-blue rounded-xl px-3.5 py-2.5 outline-none font-bold text-slate-800 transition"
                   />
                 </div>
@@ -373,7 +373,7 @@ export default function LeadsPage() {
                   <input
                     type="email"
                     value={email}
-                    onChange={(e: any) => setEmail(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
                     className="w-full text-xs bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200/80 focus:border-brand-blue rounded-xl px-3.5 py-2.5 outline-none font-bold text-slate-800 transition"
                   />
                 </div>
@@ -383,7 +383,7 @@ export default function LeadsPage() {
                   <input
                     type="date"
                     value={dataNascimento}
-                    onChange={(e: any) => setDataNascimento(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDataNascimento(e.target.value)}
                     className="w-full text-xs bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200/80 focus:border-brand-blue rounded-xl px-3.5 py-2.5 outline-none font-bold text-slate-800 transition"
                   />
                 </div>
@@ -394,7 +394,7 @@ export default function LeadsPage() {
                 <input
                   type="date"
                   value={dataPrimeiroContato}
-                  onChange={(e: any) => setDataPrimeiroContato(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDataPrimeiroContato(e.target.value)}
                   className="w-full text-xs bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200/80 focus:border-brand-blue rounded-xl px-3.5 py-2.5 outline-none font-bold text-slate-800 transition"
                 />
               </div>
@@ -403,7 +403,7 @@ export default function LeadsPage() {
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Status</label>
                 <select
                   value={status}
-                  onChange={(e: any) => setStatus(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStatus(e.target.value)}
                   className="w-full text-xs bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200/80 focus:border-brand-blue rounded-xl px-3.5 py-2.5 outline-none font-bold text-slate-800 transition"
                 >
                   <option value="NOVO">NOVO</option>
@@ -421,11 +421,11 @@ export default function LeadsPage() {
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Origem</label>
                 <select
                   value={selectedOrigemId || ''}
-                  onChange={(e: any) => setSelectedOrigemId(e.target.value === 'NOVO' ? 'NOVO' : (e.target.value ? parseInt(e.target.value, 10) : ''))}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedOrigemId(e.target.value === 'NOVO' ? 'NOVO' : (e.target.value ? parseInt(e.target.value, 10) : ''))}
                   className="w-full text-xs bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200/80 focus:border-brand-blue rounded-xl px-3.5 py-2.5 outline-none font-bold text-slate-800 transition"
                 >
                   <option value="">Nenhuma origem definida</option>
-                  {origens?.map((orig: any) => (
+                  {origens?.map((orig: Origem) => (
                     <option key={orig.id} value={orig.id}>
                       {orig.nome}
                     </option>
@@ -436,7 +436,7 @@ export default function LeadsPage() {
                   <input
                     type="text"
                     value={novoOrigemNome}
-                    onChange={(e: any) => setNovoOrigemNome(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNovoOrigemNome(e.target.value)}
                     placeholder="Nome da nova origem (ex: Indicação, Google)"
                     className="mt-1 w-full text-xs bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200/80 focus:border-brand-blue rounded-xl px-3.5 py-2.5 outline-none font-bold text-slate-800 transition"
                     required
@@ -448,11 +448,11 @@ export default function LeadsPage() {
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Interesse</label>
                 <select
                   value={selectedInteresseId || ''}
-                  onChange={(e: any) => setSelectedInteresseId(e.target.value === 'NOVO' ? 'NOVO' : (e.target.value ? parseInt(e.target.value, 10) : ''))}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedInteresseId(e.target.value === 'NOVO' ? 'NOVO' : (e.target.value ? parseInt(e.target.value, 10) : ''))}
                   className="w-full text-xs bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200/80 focus:border-brand-blue rounded-xl px-3.5 py-2.5 outline-none font-bold text-slate-800 transition"
                 >
                   <option value="">Nenhum interesse definido</option>
-                  {interesses?.map((int: any) => (
+                  {interesses?.map((int: Interesse) => (
                     <option key={int.id} value={int.id}>
                       {int.nome}
                     </option>
@@ -463,7 +463,7 @@ export default function LeadsPage() {
                   <input
                     type="text"
                     value={novoInteresseNome}
-                    onChange={(e: any) => setNovoInteresseNome(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNovoInteresseNome(e.target.value)}
                     placeholder="Nome do novo interesse"
                     className="mt-1 w-full text-xs bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200/80 focus:border-brand-blue rounded-xl px-3.5 py-2.5 outline-none font-bold text-slate-800 transition"
                     required
@@ -475,7 +475,7 @@ export default function LeadsPage() {
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Resultado (FUP)</label>
                 <select
                   value={resultadoFup}
-                  onChange={(e) => setResultadoFup(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setResultadoFup(e.target.value)}
                   className="w-full text-xs bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200/80 focus:border-brand-blue rounded-xl px-3.5 py-2.5 outline-none font-bold text-slate-800 transition"
                 >
                   <option value="">Nenhum resultado definido</option>
@@ -490,7 +490,7 @@ export default function LeadsPage() {
                 <textarea
                   rows={3}
                   value={observacoes}
-                  onChange={(e: any) => setObservacoes(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setObservacoes(e.target.value)}
                   placeholder="Ex: Lead demonstrou interesse no procedimento..."
                   className="w-full text-xs bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200/80 focus:border-brand-blue rounded-xl px-3.5 py-2.5 outline-none font-bold text-slate-800 transition resize-none"
                 />

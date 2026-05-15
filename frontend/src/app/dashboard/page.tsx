@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useDashboard, Tarefa, Lead } from './context';
+import { useDashboard, Tarefa, Lead, Consulta, Orientacao } from './context';
 import { API_URL } from '@/config';
 
 export default function DashboardPage() {
@@ -34,7 +34,7 @@ export default function DashboardPage() {
   const currentMonth = today.getMonth() + 1;
   const currentDay = today.getDate();
 
-  const aniversariantesHoje = leads.filter((l) => {
+  const aniversariantesHoje = leads.filter((l: Lead) => {
     if (!l.data_nascimento) return false;
     const parts = l.data_nascimento.split('-');
     if (parts.length < 3) return false;
@@ -43,7 +43,7 @@ export default function DashboardPage() {
     return m === currentMonth && d === currentDay;
   });
 
-  const aniversariantesMes = leads.filter((l) => {
+  const aniversariantesMes = leads.filter((l: Lead) => {
     if (!l.data_nascimento) return false;
     const parts = l.data_nascimento.split('-');
     if (parts.length < 3) return false;
@@ -51,9 +51,9 @@ export default function DashboardPage() {
     return m === currentMonth;
   });
 
-  const tarefasPendentes = tarefas.filter((t) => !t.concluida);
+  const tarefasPendentes = tarefas.filter((t: Tarefa) => !t.concluida);
 
-  const leadsComComparecimento = leads.filter(l => l.compareceu).length;
+  const leadsComComparecimento = leads.filter((l: Lead) => l.compareceu).length;
   const leadsSemComparecimento = leads.length - leadsComComparecimento;
   const pctSim = leads.length > 0 ? Math.round((leadsComComparecimento / leads.length) * 100) : 0;
   const pctNao = leads.length > 0 ? 100 - pctSim : 0;
@@ -71,12 +71,12 @@ export default function DashboardPage() {
   });
 
   const assuntoCounts: { [key: string]: number } = {};
-  orientacoes.forEach(o => {
+  orientacoes.forEach((o: any) => {
     const assName = o.assunto?.nome || o.assunto_texto || 'Outros / Geral';
     assuntoCounts[assName] = (assuntoCounts[assName] || 0) + 1;
   });
 
-  const orientacoesRecentes = orientacoes.filter(o => {
+  const orientacoesRecentes = orientacoes.filter((o: any) => {
     const d = new Date(o.created_at);
     const now = new Date();
     return (now.getTime() - d.getTime()) < 7 * 24 * 60 * 60 * 1000;
@@ -107,7 +107,7 @@ export default function DashboardPage() {
     }
 
     // Immediately update local state for real-time responsiveness
-    const updatedTarefas = tarefas.map((item) => {
+    const updatedTarefas = tarefas.map((item: Tarefa) => {
       if (item.id === t.id) {
         return { ...item, concluida: nextConcluida, data_lembrete: nextDataLembrete };
       }
@@ -440,14 +440,14 @@ export default function DashboardPage() {
             </Link>
           </div>
 
-          {consultas.filter(c => c.data_lembrete).length === 0 ? (
+          {consultas.filter((c: Consulta) => c.data_lembrete).length === 0 ? (
             <p className="text-xs text-slate-400 font-medium text-center py-6">Nenhum lembrete pendente.</p>
           ) : (
             <div className="flex flex-col gap-2 max-h-96 overflow-y-auto pr-1 select-none">
               {consultas
-                .filter(c => c.data_lembrete)
-                .sort((a, b) => (a.data_lembrete! > b.data_lembrete! ? 1 : -1))
-                .map((c) => (
+                .filter((c: Consulta) => c.data_lembrete)
+                .sort((a: Consulta, b: Consulta) => (a.data_lembrete! > b.data_lembrete! ? 1 : -1))
+                .map((c: Consulta) => (
                   <div key={c.id} className="p-4 bg-slate-50 hover:bg-slate-100/50 border border-slate-100 rounded-xl flex flex-col gap-2 transition select-none">
                     <div className="flex justify-between items-start gap-3">
                       <div className="flex flex-col gap-1 flex-1">
