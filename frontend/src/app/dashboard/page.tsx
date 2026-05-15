@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useDashboard, Tarefa } from './context';
+import { useDashboard, Tarefa, Lead } from './context';
 import { API_URL } from '@/config';
 
 export default function DashboardPage() {
@@ -59,7 +59,7 @@ export default function DashboardPage() {
   const pctNao = leads.length > 0 ? 100 - pctSim : 0;
 
   const origemCounts: { [key: string]: number } = {};
-  leads.forEach(l => {
+  leads.forEach((l: Lead) => {
     const origName = l.origem?.nome || l.origem_manual || 'Não Informado';
     origemCounts[origName] = (origemCounts[origName] || 0) + 1;
   });
