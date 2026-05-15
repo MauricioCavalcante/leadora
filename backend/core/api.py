@@ -5,7 +5,7 @@ from ninja.security import HttpBearer
 from django.contrib.auth import authenticate
 from django.utils import timezone
 from clinicas.models import Clinica, CustomUser
-from leads.models import Lead, Origem, Consulta, Tarefa, KanbanColumn
+from leads.models import Lead, Origem, Interesse, Consulta, Tarefa, KanbanColumn, Orientacao, AssuntoOrientacao
 
 api = NinjaAPI(title="Leadora API", version="1.0.0")
 
@@ -248,6 +248,30 @@ class TarefaOut(Schema):
     atribuido_a: Optional[UserOut] = None
     created_at: datetime.datetime
     lead: Optional[LeadOut] = None
+
+class AssuntoOrientacaoIn(Schema):
+    clinica_id: int
+    nome: str
+
+class AssuntoOrientacaoOut(Schema):
+    id: int
+    nome: str
+
+class OrientacaoIn(Schema):
+    clinica_id: int
+    paciente_nome: str
+    assunto_id: Optional[int] = None
+    assunto_texto: Optional[str] = None
+    descricao: Optional[str] = None
+
+class OrientacaoOut(Schema):
+    id: int
+    clinica: ClinicaOut
+    paciente_nome: str
+    assunto: Optional[AssuntoOrientacaoOut] = None
+    assunto_texto: Optional[str] = None
+    descricao: Optional[str] = None
+    created_at: datetime.datetime
 
 class TarefaUpdateIn(Schema):
     descricao: Optional[str] = None
@@ -555,7 +579,7 @@ def create_lead(request, data: LeadIn):
         from ninja.errors import HttpError
         raise HttpError(403, "Not allowed to create leads for this clinic")
 
-    data_dict = data.dict()
+    data_dict = data.dict(exclude_unset=True)
     for k, v in data_dict.items():
         if isinstance(v, str):
             data_dict[k] = strip_tags(v)
@@ -887,13 +911,65 @@ def update_tarefa(request, tarefa_id: int, data: TarefaUpdateIn):
 
 @api.delete("/tarefas/{tarefa_id}", auth=AuthBearer())
 def delete_tarefa(request, tarefa_id: int):
-    try:
-        tarefa = Tarefa.objects.get(id=tarefa_id)
-    except Tarefa.DoesNotExist:
-        from ninja.errors import HttpError
-        raise HttpError(404, "Tarefa not found")
-    tarefa.delete()
-    return {"status": "success"}
+    t = Tarefa.objects.filter(id=tarefa_id).first()
+    if not t:
+        return api.create_response(request, {"detail": "Tarefa not found"}, status=404)
+    t.delete()
+    return {"success": True}
+
+# -------------------------------------------------------------------
+# ORIENTAÇÕES
+# -------------------------------------------------------------------
+
+@api.post("/orientacoes", response=OrientacaoOut, auth=AuthBearer())
+def create_orientacao(request, data: OrientacaoIn):
+    clinica = Clinica.objects.filter(id=data.clinica_id).first()
+    if not clinica:
+        return api.create_response(request, {"detail": "Clinica not found"}, status=404)
+        
+    assunto = None
+    if data.assunto_id:
+        assunto = AssuntoOrientacao.objects.filter(id=data.assunto_id).first()
+
+    orientacao = Orientacao.objects.create(
+        clinica=clinica,
+        paciente_nome=data.paciente_nome,
+        assunto=assunto,
+        assunto_texto=data.assunto_texto,
+        descricao=data.descricao
+    )
+    return orientacao
+
+@api.get("/assuntos-orientacao", response=List[AssuntoOrientacaoOut], auth=AuthBearer())
+def list_assuntos_orientacao(request, clinica_id: int):
+    return list(AssuntoOrientacao.objects.filter(clinica_id=clinica_id))
+
+@api.post("/assuntos-orientacao", response=AssuntoOrientacaoOut, auth=AuthBearer())
+def create_assunto_orientacao(request, data: AssuntoOrientacaoIn):
+    clinica = Clinica.objects.filter(id=data.clinica_id).first()
+    if not clinica:
+        return api.create_response(request, {"detail": "Clinica not found"}, status=404)
+    return AssuntoOrientacao.objects.create(clinica=clinica, nome=data.nome)
+
+@api.delete("/assuntos-orientacao/{assunto_id}", auth=AuthBearer())
+def delete_assunto_orientacao(request, assunto_id: int):
+    AssuntoOrientacao.objects.filter(id=assunto_id).delete()
+    return {"success": True}
+
+@api.get("/orientacoes", response=List[OrientacaoOut], auth=AuthBearer())
+def list_orientacoes(request, clinica_id: int = None):
+    qs = Orientacao.objects.all().order_by('-created_at')
+    if clinica_id:
+        qs = qs.filter(clinica_id=clinica_id)
+    return list(qs)
+
+@api.delete("/orientacoes/{orientacao_id}", auth=AuthBearer())
+def delete_orientacao(request, orientacao_id: int):
+    o = Orientacao.objects.filter(id=orientacao_id).first()
+    if not o:
+        return api.create_response(request, {"detail": "Orientacao not found"}, status=404)
+    o.delete()
+    return {"success": True}
 
 @api.get("/kanban-columns", response=List[KanbanColumnOut], auth=AuthBearer())
 def list_kanban_columns(request, clinica_id: int):

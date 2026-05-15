@@ -53,7 +53,9 @@ export default function TarefasPage() {
     const now = new Date();
     let computed = new Date();
 
-    if (tipo === 'SEMANAL') {
+    if (tipo === 'DIARIA') {
+      computed.setDate(now.getDate() + 1);
+    } else if (tipo === 'SEMANAL') {
       const targetWd = parseInt(wd, 10);
       let currentWd = now.getDay();
       if (currentWd === 0) currentWd = 7; // Convert Sunday from 0 to 7
@@ -170,7 +172,9 @@ export default function TarefasPage() {
       nextConcluida = false;
       const current = t.data_lembrete ? new Date(t.data_lembrete + 'T12:00:00Z') : new Date();
 
-      if (t.tipo_repeticao === 'SEMANAL') {
+      if (t.tipo_repeticao === 'DIARIA') {
+        current.setDate(current.getDate() + 1);
+      } else if (t.tipo_repeticao === 'SEMANAL') {
         current.setDate(current.getDate() + 7);
       } else if (t.tipo_repeticao === 'MENSAL') {
         current.setMonth(current.getMonth() + 1);
@@ -390,6 +394,7 @@ export default function TarefasPage() {
                   className="px-4 py-2 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-blue transition font-bold"
                 >
                   <option value="PONTUAL">Não repetir</option>
+                  <option value="DIARIA">Repetir diariamente</option>
                   <option value="SEMANAL">Repetir semanalmente</option>
                   <option value="MENSAL">Repetir mensalmente</option>
                   <option value="ANUAL">Repetir anualmente</option>
@@ -565,6 +570,7 @@ export default function TarefasPage() {
                   className="px-4 py-2 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-blue transition font-bold"
                 >
                   <option value="PONTUAL">Não repetir</option>
+                  <option value="DIARIA">Repetir diariamente</option>
                   <option value="SEMANAL">Repetir semanalmente</option>
                   <option value="MENSAL">Repetir mensalmente</option>
                   <option value="ANUAL">Repetir anualmente</option>

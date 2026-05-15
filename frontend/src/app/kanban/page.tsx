@@ -171,13 +171,24 @@ export default function KanbanPage() {
     if (!token || !selectedClinicaId) return;
 
     try {
+      const upperStatus = newStatus.toUpperCase();
+      const bodyData: any = { status: newStatus };
+
+      if (upperStatus.includes('CONSULTA') || upperStatus.includes('AGENDADO')) {
+        bodyData.resultado_fup = 'Marcou';
+      } else if (upperStatus.includes('PERDIDO') || upperStatus.includes('DESIST')) {
+        bodyData.resultado_fup = 'Desistiu';
+      } else if (upperStatus.includes('FUP') || upperStatus.includes('CONTATO')) {
+        bodyData.resultado_fup = 'Ainda em FUP';
+      }
+
       const res = await fetch(`${API_URL}/api/v1/leads/${lead.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify(bodyData),
       });
 
       if (res.ok) {

@@ -74,6 +74,20 @@ export interface Interesse {
   nome: string;
 }
 
+export interface AssuntoOrientacao {
+  id: number;
+  nome: string;
+}
+
+export interface Orientacao {
+  id: number;
+  paciente_nome: string;
+  assunto?: AssuntoOrientacao;
+  assunto_texto?: string;
+  descricao?: string;
+  created_at: string;
+}
+
 export interface DashboardContextType {
   token: string | null;
   username: string | null;
@@ -91,6 +105,8 @@ export interface DashboardContextType {
   setConsultas: React.Dispatch<React.SetStateAction<Consulta[]>>;
   tarefas: Tarefa[];
   setTarefas: React.Dispatch<React.SetStateAction<Tarefa[]>>;
+  orientacoes: Orientacao[];
+  setOrientacoes: React.Dispatch<React.SetStateAction<Orientacao[]>>;
   profissionais: Profissional[];
   isSidebarExpanded: boolean;
   setIsSidebarExpanded: (v: boolean) => void;
@@ -101,6 +117,7 @@ export interface DashboardContextType {
   fetchConsultas: (authToken: string, clinicaId: number) => void;
   fetchTarefas: (authToken: string, clinicaId: number) => void;
   fetchProfissionais: (authToken: string, clinicaId: number) => void;
+  fetchOrientacoes: (authToken: string, clinicaId: number) => void;
   fetchClinicas: (authToken: string) => void;
   logout: () => void;
 }
@@ -123,6 +140,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
   const [consultas, setConsultas] = useState<Consulta[]>([]);
   const [tarefas, setTarefas] = useState<Tarefa[]>([]);
   const [profissionais, setProfissionais] = useState<Profissional[]>([]);
+  const [orientacoes, setOrientacoes] = useState<Orientacao[]>([]);
 
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -181,6 +199,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
           fetchConsultas(authToken, cid);
           fetchTarefas(authToken, cid);
           fetchProfissionais(authToken, cid);
+          fetchOrientacoes(authToken, cid);
         }
       }
     } catch (err) {
@@ -287,6 +306,22 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const fetchOrientacoes = async (authToken: string, clinicaId: number) => {
+    try {
+      const res = await fetch(`${API_URL}/api/v1/orientacoes?clinica_id=${clinicaId}`, {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setOrientacoes(data);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('username');
@@ -313,6 +348,8 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         setConsultas,
         tarefas,
         setTarefas,
+        orientacoes,
+        setOrientacoes,
         profissionais,
         isSidebarExpanded,
         setIsSidebarExpanded,
@@ -323,6 +360,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         fetchConsultas,
         fetchTarefas,
         fetchProfissionais,
+        fetchOrientacoes,
         fetchClinicas,
         logout,
       }}

@@ -6,7 +6,19 @@ import { useDashboard, Tarefa } from './context';
 import { API_URL } from '@/config';
 
 export default function DashboardPage() {
-  const { token, selectedClinicaId, leads, consultas, tarefas, setTarefas, fetchLeads, fetchConsultas, fetchTarefas } = useDashboard();
+  const {
+    token,
+    selectedClinicaId,
+    leads,
+    consultas,
+    tarefas,
+    orientacoes,
+    setTarefas,
+    fetchLeads,
+    fetchConsultas,
+    fetchTarefas,
+    fetchOrientacoes
+  } = useDashboard();
   const [completingTask, setCompletingTask] = useState<Tarefa | null>(null);
 
   React.useEffect(() => {
@@ -14,6 +26,7 @@ export default function DashboardPage() {
       fetchLeads(token, selectedClinicaId);
       fetchConsultas(token, selectedClinicaId);
       fetchTarefas(token, selectedClinicaId);
+      fetchOrientacoes(token, selectedClinicaId);
     }
   }, [token, selectedClinicaId]);
 
@@ -56,6 +69,18 @@ export default function DashboardPage() {
     const intName = l.interesse?.nome || 'Não Informado';
     interesseCounts[intName] = (interesseCounts[intName] || 0) + 1;
   });
+
+  const assuntoCounts: { [key: string]: number } = {};
+  orientacoes.forEach(o => {
+    const assName = o.assunto?.nome || o.assunto_texto || 'Outros / Geral';
+    assuntoCounts[assName] = (assuntoCounts[assName] || 0) + 1;
+  });
+
+  const orientacoesRecentes = orientacoes.filter(o => {
+    const d = new Date(o.created_at);
+    const now = new Date();
+    return (now.getTime() - d.getTime()) < 7 * 24 * 60 * 60 * 1000;
+  }).length;
 
   const handleConclude = async (t: Tarefa) => {
     if (!token || !selectedClinicaId) return;
@@ -152,6 +177,14 @@ export default function DashboardPage() {
           <span className="text-3xl font-black text-emerald-500">{consultas.length}</span>
           <p className="text-xs text-slate-400 font-medium leading-normal">
             Pacientes que agendaram comparecimento
+          </p>
+        </div>
+
+        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col gap-2">
+          <span className="text-xs font-bold text-slate-400 tracking-wider uppercase">Orientações</span>
+          <span className="text-3xl font-black text-brand-green">{orientacoes.length}</span>
+          <p className="text-xs text-slate-400 font-medium leading-normal">
+            Total de orientações prestadas ({orientacoesRecentes} nos últimos 7 dias)
           </p>
         </div>
       </section>
@@ -276,6 +309,41 @@ export default function DashboardPage() {
                     <div className="w-full bg-slate-50 rounded-full h-2.5 overflow-hidden border border-slate-100/60 p-[1px]">
                       <div
                         className="bg-emerald-500 h-full rounded-full transition-all duration-1000 ease-out"
+                        style={{ width: `${pct}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <p className="text-xs font-medium text-slate-400 text-center py-4 italic">Nenhum dado cadastrado.</p>
+            )}
+          </div>
+        </div>
+        {/* Orientações por Assunto */}
+        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col gap-4">
+          <div>
+            <h3 className="text-sm font-extrabold text-slate-800 tracking-tight flex items-center gap-2">
+              Orientações por Assunto
+            </h3>
+            <p className="text-xs text-slate-400 font-medium leading-normal">
+              Principais dúvidas e temas das orientações
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-3 max-h-48 overflow-y-auto pr-1">
+            {Object.keys(assuntoCounts).length > 0 ? (
+              Object.entries(assuntoCounts).map(([key, count]) => {
+                const pct = orientacoes.length > 0 ? Math.round((count / orientacoes.length) * 100) : 0;
+                return (
+                  <div key={key} className="flex flex-col gap-1 select-none">
+                    <div className="flex justify-between text-xs font-bold text-slate-700">
+                      <span className="truncate max-w-[160px]">{key}</span>
+                      <span>{count} ({pct}%)</span>
+                    </div>
+                    <div className="w-full bg-slate-50 rounded-full h-2.5 overflow-hidden border border-slate-100/60 p-[1px]">
+                      <div
+                        className="bg-brand-green h-full rounded-full transition-all duration-1000 ease-out"
                         style={{ width: `${pct}%` }}
                       ></div>
                     </div>

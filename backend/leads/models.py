@@ -17,6 +17,13 @@ class Interesse(models.Model):
     def __str__(self):
         return f"{self.nome} ({self.clinica.nome})"
 
+class AssuntoOrientacao(models.Model):
+    clinica = models.ForeignKey(Clinica, on_delete=models.CASCADE, related_name='assuntos_orientacao')
+    nome = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"{self.nome} ({self.clinica.nome})"
+
 class KanbanColumn(models.Model):
     clinica = models.ForeignKey(Clinica, on_delete=models.CASCADE, related_name='kanban_columns')
     title = models.CharField(max_length=100)
@@ -106,3 +113,14 @@ class Tarefa(models.Model):
 
     def __str__(self):
         return self.descricao
+
+class Orientacao(models.Model):
+    clinica = models.ForeignKey(Clinica, on_delete=models.CASCADE, related_name='orientacoes')
+    paciente_nome = models.CharField(max_length=255)
+    assunto = models.ForeignKey(AssuntoOrientacao, on_delete=models.SET_NULL, null=True, blank=True, related_name='orientacoes')
+    assunto_texto = models.CharField(max_length=255, blank=True, null=True) # fallback for text
+    descricao = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f"Orientação: {self.paciente_nome} ({self.created_at})"

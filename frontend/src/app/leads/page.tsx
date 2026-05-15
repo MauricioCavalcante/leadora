@@ -14,8 +14,11 @@ export default function LeadsPage() {
     interesses,
     setInteresses,
     fetchInteresses,
+    origens,
+    fetchOrigens,
   } = useDashboard();
 
+  const [isCreatingLead, setIsCreatingLead] = useState(false);
   const [editLead, setEditLead] = useState<any>(null);
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
@@ -26,13 +29,20 @@ export default function LeadsPage() {
   const [status, setStatus] = useState('');
   const [faltas, setFaltas] = useState(0);
   const [selectedInteresseId, setSelectedInteresseId] = useState<any>('');
+  const [novoInteresseNome, setNovoInteresseNome] = useState('');
+  const [selectedOrigemId, setSelectedOrigemId] = useState<any>('');
+  const [novoOrigemNome, setNovoOrigemNome] = useState('');
   const [compareceu, setCompareceu] = useState(false);
+  const [resultadoFup, setResultadoFup] = useState('');
 
   React.useEffect(() => {
     if (token && selectedClinicaId) {
       fetchLeads(token, selectedClinicaId);
       if (fetchInteresses) {
         fetchInteresses(token, selectedClinicaId);
+      }
+      if (fetchOrigens) {
+        fetchOrigens(token, selectedClinicaId);
       }
     }
   }, [token, selectedClinicaId]);
@@ -48,36 +58,112 @@ export default function LeadsPage() {
     setStatus(lead.status || 'NOVO');
     setFaltas(lead.faltas || 0);
     setSelectedInteresseId(lead.interesse ? lead.interesse.id : '');
+    setNovoInteresseNome('');
+    setSelectedOrigemId(lead.origem ? lead.origem.id : '');
+    setNovoOrigemNome('');
     setCompareceu(lead.compareceu || false);
+    setResultadoFup(lead.resultado_fup || '');
+  };
+
+  const openCreateModal = () => {
+    setEditLead(null);
+    setIsCreatingLead(true);
+    setNome('');
+    setEmail('');
+    setTelefone('');
+    setDataNascimento('');
+    setDataPrimeiroContato('');
+    setObservacoes('');
+    setStatus('NOVO');
+    setFaltas(0);
+    setSelectedInteresseId('');
+    setNovoInteresseNome('');
+    setSelectedOrigemId('');
+    setNovoOrigemNome('');
+    setCompareceu(false);
+    setResultadoFup('');
   };
 
   const handleUpdateLead = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!token || !selectedClinicaId || !editLead) return;
+    if (!token || !selectedClinicaId) return;
+    if (!editLead && !isCreatingLead) return;
 
     try {
-      const res = await fetch(`${API_URL}/api/v1/leads/${editLead.id}`, {
-        method: 'PATCH',
+      const isEditing = !!editLead;
+      const url = isEditing
+        ? `${API_URL}/api/v1/leads/${editLead.id}`
+        : `${API_URL}/api/v1/leads`;
+
+      let finalInteresseId = selectedInteresseId;
+      if (selectedInteresseId === 'NOVO' && novoInteresseNome.trim()) {
+        const resInt = await fetch(`${API_URL}/api/v1/interesses`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ nome: novoInteresseNome.trim(), clinica_id: selectedClinicaId }),
+        });
+        if (resInt.ok) {
+          const createdInt = await resInt.json();
+          finalInteresseId = createdInt.id;
+          if (fetchInteresses) fetchInteresses(token, selectedClinicaId);
+        } else {
+          finalInteresseId = null;
+        }
+      }
+
+      let finalOrigemId = selectedOrigemId;
+      if (selectedOrigemId === 'NOVO' && novoOrigemNome.trim()) {
+        const resOrigem = await fetch(`${API_URL}/api/v1/origens`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ nome: novoOrigemNome.trim(), clinica_id: selectedClinicaId }),
+        });
+        if (resOrigem.ok) {
+          const createdOrigem = await resOrigem.json();
+          finalOrigemId = createdOrigem.id;
+          if (fetchOrigens) fetchOrigens(token, selectedClinicaId);
+        } else {
+          finalOrigemId = null;
+        }
+      }
+
+      const bodyData: any = {
+        nome,
+        email,
+        telefone,
+        data_nascimento: dataNascimento || null,
+        data_primeiro_contato: dataPrimeiroContato || null,
+        observacoes,
+        status,
+        faltas,
+        interesse_id: (finalInteresseId && finalInteresseId !== 'NOVO') ? finalInteresseId : null,
+        origem_id: (finalOrigemId && finalOrigemId !== 'NOVO') ? finalOrigemId : null,
+        compareceu,
+        resultado_fup: resultadoFup || null,
+      };
+
+      if (!isEditing) {
+        bodyData.clinica_id = selectedClinicaId;
+      }
+
+      const res = await fetch(url, {
+        method: isEditing ? 'PATCH' : 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          nome,
-          email,
-          telefone,
-          data_nascimento: dataNascimento || null,
-          data_primeiro_contato: dataPrimeiroContato || null,
-          observacoes,
-          status,
-          faltas,
-          interesse_id: selectedInteresseId || null,
-          compareceu,
-        }),
+        body: JSON.stringify(bodyData),
       });
 
       if (res.ok) {
         setEditLead(null);
+        setIsCreatingLead(false);
         fetchLeads(token, selectedClinicaId);
       }
     } catch (err) {
@@ -108,7 +194,7 @@ export default function LeadsPage() {
     if (!token || !selectedClinicaId) return;
 
     const nextFaltas = Math.max(0, currentFaltas + delta);
-    const updatedLeads = leads.map((l) => (l.id === leadId ? { ...l, faltas: nextFaltas } : l));
+    const updatedLeads = leads.map((l: any) => (l.id === leadId ? { ...l, faltas: nextFaltas } : l));
     setLeads(updatedLeads);
 
     try {
@@ -132,6 +218,15 @@ export default function LeadsPage() {
           <h2 className="text-2xl font-black text-slate-800 tracking-tight">Leads</h2>
           <p className="text-xs text-slate-400 font-medium">Gestão completa de leads recebidos ou criados manualmente</p>
         </div>
+        <button
+          onClick={openCreateModal}
+          className="bg-brand-blue hover:bg-brand-blue/90 text-white font-bold py-2.5 px-4 rounded-xl shadow-md transition active:scale-[0.98] flex items-center gap-2 text-sm cursor-pointer select-none"
+        >
+          <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+            <path d="M12 4v16m8-8H4" />
+          </svg>
+          Novo Lead
+        </button>
       </div>
 
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col gap-4">
@@ -148,12 +243,15 @@ export default function LeadsPage() {
                   <th className="py-3.5 px-4 text-xs font-black text-slate-400 uppercase tracking-wider">Contato</th>
                   <th className="py-3.5 px-4 text-xs font-black text-slate-400 uppercase tracking-wider">Primeiro Contato</th>
                   <th className="py-3.5 px-4 text-xs font-black text-slate-400 uppercase tracking-wider">Status</th>
+                  <th className="py-3.5 px-4 text-xs font-black text-slate-400 uppercase tracking-wider">Origem</th>
+                  <th className="py-3.5 px-4 text-xs font-black text-slate-400 uppercase tracking-wider">Interesse</th>
                   <th className="py-3.5 px-4 text-xs font-black text-slate-400 uppercase tracking-wider">Faltas</th>
+                  <th className="py-3.5 px-4 text-xs font-black text-slate-400 uppercase tracking-wider">Resultado</th>
                   <th className="py-3.5 px-4 text-xs font-black text-slate-400 uppercase tracking-wider text-right">Ações</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {leads.map((l) => (
+                {leads.map((l: any) => (
                   <tr key={l.id} className="hover:bg-slate-50/60 transition">
                     <td className="py-3.5 px-4">
                       <div className="flex flex-col gap-0.5">
@@ -182,21 +280,24 @@ export default function LeadsPage() {
                       </span>
                     </td>
                     <td className="py-3.5 px-4">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleUpdateFaltas(l.id, l.faltas, -1)}
-                          className="w-7 h-7 flex items-center justify-center bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 rounded-xl transition font-black text-sm select-none cursor-pointer active:scale-[0.94]"
-                        >
-                          -
-                        </button>
-                        <span className="text-sm font-extrabold text-slate-800 w-5 text-center">{l.faltas}</span>
-                        <button
-                          onClick={() => handleUpdateFaltas(l.id, l.faltas, 1)}
-                          className="w-7 h-7 flex items-center justify-center bg-brand-blue/5 hover:bg-brand-blue/10 border border-brand-blue/20 text-brand-blue rounded-xl transition font-black text-sm select-none cursor-pointer active:scale-[0.94]"
-                        >
-                          +
-                        </button>
+                      <span className="text-xs text-slate-500 font-bold">
+                        {l.origem?.nome || '-'}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <span className="text-xs text-slate-500 font-bold">
+                        {l.interesse?.nome || '-'}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <div className="flex items-center justify-center w-8">
+                        <span className="text-sm font-extrabold text-slate-800">{l.faltas}</span>
                       </div>
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <span className="text-xs font-bold tracking-wider bg-slate-50 text-slate-600 border border-slate-100 px-2 py-1 rounded-xl">
+                        {l.resultado_fup || '-'}
+                      </span>
                     </td>
                     <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-2">
@@ -229,12 +330,16 @@ export default function LeadsPage() {
       </div>
 
       {/* Edit Modal */}
-      {editLead && (
+      {(editLead || isCreatingLead) && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-lg p-6 rounded-2xl shadow-xl border border-slate-100 select-none flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
             <div>
-              <h3 className="text-base font-extrabold text-slate-800 tracking-tight">Editar Lead Completo</h3>
-              <p className="text-xs text-slate-400 font-medium">Atualize todas as informações sobre este lead.</p>
+              <h3 className="text-base font-extrabold text-slate-800 tracking-tight">
+                {isCreatingLead ? 'Criar Novo Lead' : 'Editar Lead Completo'}
+              </h3>
+              <p className="text-xs text-slate-400 font-medium">
+                {isCreatingLead ? 'Preencha as informações para adicionar um lead manualmente.' : 'Atualize todas as informações sobre este lead.'}
+              </p>
             </div>
 
             <form onSubmit={handleUpdateLead} className="flex flex-col gap-3.5">
@@ -245,7 +350,7 @@ export default function LeadsPage() {
                     type="text"
                     required
                     value={nome}
-                    onChange={(e) => setNome(e.target.value)}
+                    onChange={(e: any) => setNome(e.target.value)}
                     className="w-full text-xs bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200/80 focus:border-brand-blue rounded-xl px-3.5 py-2.5 outline-none font-bold text-slate-800 transition"
                   />
                 </div>
@@ -256,7 +361,7 @@ export default function LeadsPage() {
                     type="text"
                     required
                     value={telefone}
-                    onChange={(e) => setTelefone(e.target.value)}
+                    onChange={(e: any) => setTelefone(e.target.value)}
                     className="w-full text-xs bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200/80 focus:border-brand-blue rounded-xl px-3.5 py-2.5 outline-none font-bold text-slate-800 transition"
                   />
                 </div>
@@ -268,7 +373,7 @@ export default function LeadsPage() {
                   <input
                     type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e: any) => setEmail(e.target.value)}
                     className="w-full text-xs bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200/80 focus:border-brand-blue rounded-xl px-3.5 py-2.5 outline-none font-bold text-slate-800 transition"
                   />
                 </div>
@@ -278,40 +383,27 @@ export default function LeadsPage() {
                   <input
                     type="date"
                     value={dataNascimento}
-                    onChange={(e) => setDataNascimento(e.target.value)}
-                    className="w-full text-xs bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200/80 focus:border-brand-blue rounded-xl px-3.5 py-2.5 outline-none font-bold text-slate-800 transition"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Data do Primeiro Contato</label>
-                  <input
-                    type="date"
-                    value={dataPrimeiroContato}
-                    onChange={(e) => setDataPrimeiroContato(e.target.value)}
-                    className="w-full text-xs bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200/80 focus:border-brand-blue rounded-xl px-3.5 py-2.5 outline-none font-bold text-slate-800 transition"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Faltas</label>
-                  <input
-                    type="number"
-                    min={0}
-                    value={faltas}
-                    onChange={(e) => setFaltas(parseInt(e.target.value || '0'))}
+                    onChange={(e: any) => setDataNascimento(e.target.value)}
                     className="w-full text-xs bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200/80 focus:border-brand-blue rounded-xl px-3.5 py-2.5 outline-none font-bold text-slate-800 transition"
                   />
                 </div>
               </div>
 
               <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Data do Primeiro Contato</label>
+                <input
+                  type="date"
+                  value={dataPrimeiroContato}
+                  onChange={(e: any) => setDataPrimeiroContato(e.target.value)}
+                  className="w-full text-xs bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200/80 focus:border-brand-blue rounded-xl px-3.5 py-2.5 outline-none font-bold text-slate-800 transition"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Status</label>
                 <select
                   value={status}
-                  onChange={(e) => setStatus(e.target.value)}
+                  onChange={(e: any) => setStatus(e.target.value)}
                   className="w-full text-xs bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200/80 focus:border-brand-blue rounded-xl px-3.5 py-2.5 outline-none font-bold text-slate-800 transition"
                 >
                   <option value="NOVO">NOVO</option>
@@ -326,32 +418,71 @@ export default function LeadsPage() {
               </div>
 
               <div className="flex flex-col gap-1.5 select-none">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Origem</label>
+                <select
+                  value={selectedOrigemId || ''}
+                  onChange={(e: any) => setSelectedOrigemId(e.target.value === 'NOVO' ? 'NOVO' : (e.target.value ? parseInt(e.target.value, 10) : ''))}
+                  className="w-full text-xs bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200/80 focus:border-brand-blue rounded-xl px-3.5 py-2.5 outline-none font-bold text-slate-800 transition"
+                >
+                  <option value="">Nenhuma origem definida</option>
+                  {origens?.map((orig: any) => (
+                    <option key={orig.id} value={orig.id}>
+                      {orig.nome}
+                    </option>
+                  ))}
+                  <option value="NOVO" className="font-bold text-brand-blue">+ Adicionar Nova Origem</option>
+                </select>
+                {selectedOrigemId === 'NOVO' && (
+                  <input
+                    type="text"
+                    value={novoOrigemNome}
+                    onChange={(e: any) => setNovoOrigemNome(e.target.value)}
+                    placeholder="Nome da nova origem (ex: Indicação, Google)"
+                    className="mt-1 w-full text-xs bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200/80 focus:border-brand-blue rounded-xl px-3.5 py-2.5 outline-none font-bold text-slate-800 transition"
+                    required
+                  />
+                )}
+              </div>
+
+              <div className="flex flex-col gap-1.5 select-none">
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Interesse</label>
                 <select
                   value={selectedInteresseId || ''}
-                  onChange={(e) => setSelectedInteresseId(e.target.value ? parseInt(e.target.value, 10) : '')}
+                  onChange={(e: any) => setSelectedInteresseId(e.target.value === 'NOVO' ? 'NOVO' : (e.target.value ? parseInt(e.target.value, 10) : ''))}
                   className="w-full text-xs bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200/80 focus:border-brand-blue rounded-xl px-3.5 py-2.5 outline-none font-bold text-slate-800 transition"
                 >
                   <option value="">Nenhum interesse definido</option>
-                  {interesses?.map((int) => (
+                  {interesses?.map((int: any) => (
                     <option key={int.id} value={int.id}>
                       {int.nome}
                     </option>
                   ))}
+                  <option value="NOVO" className="font-bold text-brand-blue">+ Adicionar Novo Interesse</option>
                 </select>
+                {selectedInteresseId === 'NOVO' && (
+                  <input
+                    type="text"
+                    value={novoInteresseNome}
+                    onChange={(e: any) => setNovoInteresseNome(e.target.value)}
+                    placeholder="Nome do novo interesse"
+                    className="mt-1 w-full text-xs bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200/80 focus:border-brand-blue rounded-xl px-3.5 py-2.5 outline-none font-bold text-slate-800 transition"
+                    required
+                  />
+                )}
               </div>
 
-              <div className="flex items-center gap-2 select-none">
-                <input
-                  type="checkbox"
-                  id="edit_leads_compareceu"
-                  checked={compareceu}
-                  onChange={(e) => setCompareceu(e.target.checked)}
-                  className="w-4 h-4 rounded text-brand-green border-slate-300 focus:ring-brand-green cursor-pointer"
-                />
-                <label htmlFor="edit_leads_compareceu" className="text-xs font-bold text-slate-600 select-none cursor-pointer">
-                  Compareceu
-                </label>
+              <div className="flex flex-col gap-1.5 select-none">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Resultado (FUP)</label>
+                <select
+                  value={resultadoFup}
+                  onChange={(e) => setResultadoFup(e.target.value)}
+                  className="w-full text-xs bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200/80 focus:border-brand-blue rounded-xl px-3.5 py-2.5 outline-none font-bold text-slate-800 transition"
+                >
+                  <option value="">Nenhum resultado definido</option>
+                  <option value="Ainda em FUP">Ainda em FUP</option>
+                  <option value="Marcou">Marcou</option>
+                  <option value="Desistiu">Desistiu</option>
+                </select>
               </div>
 
               <div className="flex flex-col gap-1.5">
@@ -359,7 +490,7 @@ export default function LeadsPage() {
                 <textarea
                   rows={3}
                   value={observacoes}
-                  onChange={(e) => setObservacoes(e.target.value)}
+                  onChange={(e: any) => setObservacoes(e.target.value)}
                   placeholder="Ex: Lead demonstrou interesse no procedimento..."
                   className="w-full text-xs bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200/80 focus:border-brand-blue rounded-xl px-3.5 py-2.5 outline-none font-bold text-slate-800 transition resize-none"
                 />
@@ -368,7 +499,7 @@ export default function LeadsPage() {
               <div className="flex items-center justify-end gap-3 pt-3">
                 <button
                   type="button"
-                  onClick={() => setEditLead(null)}
+                  onClick={() => { setEditLead(null); setIsCreatingLead(false); }}
                   className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-500 rounded-xl transition text-xs font-bold cursor-pointer select-none"
                 >
                   Cancelar
