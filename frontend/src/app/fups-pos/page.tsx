@@ -102,9 +102,9 @@ export default function FupsPosPage() {
               <tbody className="divide-y divide-slate-50">
                 {filteredLeads.map((l: Lead) => {
                   const dataConsulta = getLeadConsultationDate(l.id);
-                  const status1 = getFupStatus(dataConsulta, 1, l.pos_fup1_feito);
-                  const status2 = getFupStatus(dataConsulta, 8, l.pos_fup2_feito);
-                  const status3 = getFupStatus(dataConsulta, 23, l.pos_fup3_feito);
+                  const status1 = getFupStatus(l.created_at ?? undefined, l.data_primeiro_contato ?? undefined, 1, l.fup1_feito ?? undefined);
+                  const status2 = getFupStatus(l.created_at ?? undefined, l.data_primeiro_contato ?? undefined, 8, l.fup2_feito ?? undefined);
+                  const status3 = getFupStatus(l.created_at ?? undefined, l.data_primeiro_contato ?? undefined, 23, l.fup3_feito ?? undefined);
 
                   const date1 = getFupDate(dataConsulta, 1);
                   const date2 = getFupDate(dataConsulta, 8);
