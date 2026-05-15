@@ -25,6 +25,7 @@ export interface Lead {
   faltas: number;
   created_at?: string;
   origem?: { id: number; nome: string };
+  origem_manual?: string;
   interesse?: { id: number; nome: string };
   compareceu?: boolean;
   fup1_feito?: boolean;
