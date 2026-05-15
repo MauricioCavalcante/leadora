@@ -281,12 +281,12 @@ export default function LeadsPage() {
                     </td>
                     <td className="py-3.5 px-4">
                       <span className="text-xs text-slate-500 font-bold">
-                        {l.origem?.nome || '-'}
+                        {l.origem?.nome || l.origem_manual || '-'}
                       </span>
                     </td>
                     <td className="py-3.5 px-4">
                       <span className="text-xs text-slate-500 font-bold">
-                        {l.interesse?.nome || '-'}
+                        {l.interesse?.nome || l.interesse_manual || '-'}
                       </span>
                     </td>
                     <td className="py-3.5 px-4">

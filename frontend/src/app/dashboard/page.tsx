@@ -65,8 +65,8 @@ export default function DashboardPage() {
   });
 
   const interesseCounts: { [key: string]: number } = {};
-  leads.forEach(l => {
-    const intName = l.interesse?.nome || 'Não Informado';
+  leads.forEach((l: Lead) => {
+    const intName = l.interesse?.nome || l.interesse_manual || 'Não Informado';
     interesseCounts[intName] = (interesseCounts[intName] || 0) + 1;
   });
 

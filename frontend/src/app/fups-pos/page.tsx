@@ -43,7 +43,7 @@ export default function FupsPosPage() {
   };
 
   const getLeadConsultationDate = (leadId: number) => {
-    const consultation = consultas.find((c) => c.lead_id === leadId || c.lead?.id === leadId);
+    const consultation = consultas.find((c) => c.lead?.id === leadId);
     if (!consultation) return null;
     return consultation.data_hora;
   };

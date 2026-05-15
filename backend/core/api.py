@@ -93,45 +93,45 @@ class LeadIn(Schema):
     nome: str
     email: Optional[str] = None
     telefone: str
-    data_nascimento: Optional[str] = None # format YYYY-MM-DD
-    salvar_contato: bool = False
-    origem_id: Optional[int] = None
-    interesse_id: Optional[int] = None
-    compareceu: Optional[bool] = False
-    created_at: Optional[str] = None # Support backdating on creation too
-    status: Optional[str] = None
+    data_nascimento: Optional[str] = None
     data_primeiro_contato: Optional[str] = None
     observacoes: Optional[str] = None
+    status: str = "NOVO"
+    faltas: int = 0
+    interesse_id: Optional[int] = None
+    interesse_manual: Optional[str] = None
+    origem_id: Optional[int] = None
+    origem_manual: Optional[str] = None
+    compareceu: bool = False
     resultado_fup: Optional[str] = None
-    pos_fup1_feito: Optional[bool] = None
-    pos_fup2_feito: Optional[bool] = None
-    pos_fup3_feito: Optional[bool] = None
     resultado_pos_fup: Optional[str] = None
+    salvar_contato: bool = False
 
 class LeadOut(Schema):
     id: int
     nome: str
     email: Optional[str] = None
     telefone: str
-    data_nascimento: Optional[datetime.date] = None # Fixed type to serialize correctly
-    salvar_contato: bool
-    faltas: int
+    data_nascimento: Optional[datetime.date] = None
     data_primeiro_contato: Optional[datetime.date] = None
     observacoes: Optional[str] = None
+    status: str
+    faltas: int
+    interesse: Optional[InteresseOut] = None
+    interesse_manual: Optional[str] = None
+    origem: Optional[OrigemOut] = None
+    origem_manual: Optional[str] = None
+    compareceu: bool
+    resultado_fup: Optional[str] = None
+    resultado_pos_fup: Optional[str] = None
     fup1_feito: bool
     fup2_feito: bool
     fup3_feito: bool
     fup4_feito: bool
-    pos_fup1_feito: bool = False
-    pos_fup2_feito: bool = False
-    pos_fup3_feito: bool = False
-    origem: Optional[OrigemOut] = None
-    interesse: Optional[InteresseOut] = None
-    compareceu: bool = False
-    origem_manual: Optional[str] = None
-    status: str
-    resultado_fup: Optional[str] = None
-    resultado_pos_fup: Optional[str] = None
+    pos_fup1_feito: bool
+    pos_fup2_feito: bool
+    pos_fup3_feito: bool
+    salvar_contato: bool
     created_at: datetime.datetime
     updated_at: datetime.datetime
 
@@ -140,13 +140,18 @@ class LeadUpdateIn(Schema):
     email: Optional[str] = None
     telefone: Optional[str] = None
     data_nascimento: Optional[str] = None
-    salvar_contato: Optional[bool] = None
-    origem_id: Optional[int] = None
-    interesse_id: Optional[int] = None
-    compareceu: Optional[bool] = None
+    data_primeiro_contato: Optional[str] = None
+    observacoes: Optional[str] = None
     status: Optional[str] = None
+    faltas: Optional[int] = None
+    interesse_id: Optional[int] = None
+    interesse_manual: Optional[str] = None
+    origem_id: Optional[int] = None
+    origem_manual: Optional[str] = None
+    compareceu: Optional[bool] = None
     resultado_fup: Optional[str] = None
-    created_at: Optional[str] = None
+    resultado_pos_fup: Optional[str] = None
+    salvar_contato: Optional[bool] = None
     fup1_feito: Optional[bool] = None
     fup2_feito: Optional[bool] = None
     fup3_feito: Optional[bool] = None
@@ -154,10 +159,6 @@ class LeadUpdateIn(Schema):
     pos_fup1_feito: Optional[bool] = None
     pos_fup2_feito: Optional[bool] = None
     pos_fup3_feito: Optional[bool] = None
-    resultado_pos_fup: Optional[str] = None
-    data_primeiro_contato: Optional[str] = None
-    observacoes: Optional[str] = None
-    faltas: Optional[int] = None
 
 
 

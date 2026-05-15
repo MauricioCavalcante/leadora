@@ -27,6 +27,7 @@ export interface Lead {
   origem?: { id: number; nome: string };
   origem_manual?: string;
   interesse?: { id: number; nome: string };
+  interesse_manual?: string;
   compareceu?: boolean;
   fup1_feito?: boolean;
   fup2_feito?: boolean;
@@ -51,6 +52,7 @@ export interface Consulta {
   data_lembrete?: string;
   valor?: number;
   resolvido?: boolean;
+  clinica?: { id: number; nome: string };
 }
 
 export interface Tarefa {

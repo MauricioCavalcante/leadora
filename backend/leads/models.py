@@ -56,6 +56,7 @@ class Lead(models.Model):
     origem_manual = models.CharField(max_length=100, blank=True, null=True) # Fallback for old/legacy string origins
     
     interesse = models.ForeignKey(Interesse, on_delete=models.SET_NULL, null=True, blank=True, related_name='leads')
+    interesse_manual = models.CharField(max_length=100, blank=True, null=True)
     compareceu = models.BooleanField(default=False)
 
     # Post-consultation FUP fields
