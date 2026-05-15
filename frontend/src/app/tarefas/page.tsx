@@ -36,7 +36,7 @@ export default function TarefasPage() {
   const [month, setMonth] = useState('1');
 
   // Edit Task fields
-  const [editingTarefa, setEditingTarefa] = useState<any | null>(null);
+  const [editingTarefa, setEditingTarefa] = useState<Tarefa | null>(null);
   const [editDesc, setEditDesc] = useState('');
   const [editTipoRep, setEditTipoRep] = useState('PONTUAL');
   const [editDataLemb, setEditDataLemb] = useState('');
@@ -227,7 +227,7 @@ export default function TarefasPage() {
     }
   };
 
-  const openEditModal = (t: any) => {
+  const openEditModal = (t: Tarefa) => {
     setEditingTarefa(t);
     setEditDesc(t.descricao);
     setEditTipoRep(t.tipo_repeticao || 'PONTUAL');
@@ -260,7 +260,7 @@ export default function TarefasPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {tarefas.map((t: any) => {
+          {tarefas.map((t: Tarefa) => {
             const isToday = t.data_lembrete && new Date(t.data_lembrete + 'T12:00:00Z').toDateString() === new Date().toDateString();
             const isLate = t.data_lembrete && !t.concluida && new Date(t.data_lembrete + 'T12:00:00Z') < new Date();
 

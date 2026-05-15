@@ -1270,13 +1270,13 @@ export default function KanbanPage() {
                   onClick={async () => {
                     if (!confirm('Tem certeza que deseja excluir este lead?')) return;
                     try {
-                      const res = await fetch(`${API_URL}/api/v1/leads/${editingLead.id}`, {
+                      const res = await fetch(`${API_URL}/api/v1/leads/${editingLead?.id}`, {
                         method: 'DELETE',
                         headers: {
                           Authorization: `Bearer ${token}`,
                         },
                       });
-                      if (res.ok) {
+                      if (res.ok && token && selectedClinicaId) {
                         setIsEditLeadModalOpen(false);
                         setEditingLead(null);
                         fetchLeads(token, selectedClinicaId);

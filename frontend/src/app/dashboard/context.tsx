@@ -62,6 +62,7 @@ export interface Tarefa {
   data_lembrete?: string | null;
   concluida: boolean;
   atribuido_a?: { id: number; username: string; role: string } | null;
+  lead?: Lead | null;
   created_at: string;
 }
 

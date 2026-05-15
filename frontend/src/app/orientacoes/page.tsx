@@ -122,7 +122,7 @@ export default function OrientacoesPage() {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (res.ok) {
+      if (res.ok && token && selectedClinicaId) {
         fetchOrientacoes(token, selectedClinicaId);
       }
     } catch (err) {

@@ -18,7 +18,7 @@ export default function FupsPage() {
     }
   }, [token, selectedClinicaId]);
 
-  const handleUpdateFup = async (leadId: number, payload: any) => {
+  const handleUpdateFup = async (leadId: number, payload: Partial<Lead>) => {
     if (!token || !selectedClinicaId) return;
 
     try {
@@ -39,7 +39,7 @@ export default function FupsPage() {
     }
   };
 
-  const getFupDate = (createdAt: string | undefined, dataPrimeiroContato: string | undefined, daysToAdd: number) => {
+  const getFupDate = (createdAt: string | null | undefined, dataPrimeiroContato: string | null | undefined, daysToAdd: number) => {
     let dt: Date;
     if (dataPrimeiroContato) {
       // Use 'T12:00:00Z' to avoid time zone shifts with date strings
@@ -53,7 +53,7 @@ export default function FupsPage() {
     return dt;
   };
 
-  const getFupStatus = (createdAt: string | undefined, dataPrimeiroContato: string | undefined, daysToAdd: number, done: boolean | undefined) => {
+  const getFupStatus = (createdAt: string | null | undefined, dataPrimeiroContato: string | null | undefined, daysToAdd: number, done: boolean | null | undefined) => {
     if (done) return { label: 'Concluído', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
     const deadline = getFupDate(createdAt, dataPrimeiroContato, daysToAdd);
     if (!deadline) return { label: 'Agendado', color: 'bg-indigo-50 text-indigo-700 border-indigo-200 font-bold' };
@@ -95,15 +95,15 @@ export default function FupsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {leads.map((l) => {
+                {leads.map((l: Lead) => {
                   // Dentro do leads.map((l) => { ...
-                  const status1 = getFupStatus(l.created_at ?? undefined, l.data_primeiro_contato ?? undefined, 1, l.fup1_feito);
-                  const status2 = getFupStatus(l.created_at ?? undefined, l.data_primeiro_contato ?? undefined, 8, l.fup2_feito);
-                  const status3 = getFupStatus(l.created_at ?? undefined, l.data_primeiro_contato ?? undefined, 23, l.fup3_feito);
+                  const status1 = getFupStatus(l.created_at, l.data_primeiro_contato, 1, l.fup1_feito);
+                  const status2 = getFupStatus(l.created_at, l.data_primeiro_contato, 8, l.fup2_feito);
+                  const status3 = getFupStatus(l.created_at, l.data_primeiro_contato, 23, l.fup3_feito);
 
-                  const date1 = getFupDate(l.created_at ?? undefined, l.data_primeiro_contato ?? undefined, 1);
-                  const date2 = getFupDate(l.created_at ?? undefined, l.data_primeiro_contato ?? undefined, 8);
-                  const date3 = getFupDate(l.created_at ?? undefined, l.data_primeiro_contato ?? undefined, 23);
+                  const date1 = getFupDate(l.created_at, l.data_primeiro_contato, 1);
+                  const date2 = getFupDate(l.created_at, l.data_primeiro_contato, 8);
+                  const date3 = getFupDate(l.created_at, l.data_primeiro_contato, 23);
 
                   return (
                     <tr key={l.id} className="hover:bg-slate-50/60 transition">
@@ -218,7 +218,7 @@ export default function FupsPage() {
                       <td className="py-4 px-4 whitespace-nowrap">
                         <select
                           value={l.resultado_fup || ''}
-                          onChange={(e) => handleUpdateFup(l.id, { resultado_fup: e.target.value === '' ? null : e.target.value })}
+                          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleUpdateFup(l.id, { resultado_fup: e.target.value === '' ? null : e.target.value })}
                           className={`text-xs font-bold px-3 py-1 rounded-xl border focus:outline-none transition cursor-pointer ${l.resultado_fup === 'DESISTIU'
                               ? 'bg-rose-50 text-rose-700 border-rose-200'
                               : l.resultado_fup === 'MARCOU'

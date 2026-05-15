@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useDashboard } from '../dashboard/context';
+import { useDashboard, Lead } from '../dashboard/context';
 import { API_URL } from '@/config';
 
 export default function ContatosPage() {
@@ -13,7 +13,7 @@ export default function ContatosPage() {
     fetchLeads,
   } = useDashboard();
 
-  const [editLead, setEditLead] = useState<any>(null);
+  const [editLead, setEditLead] = useState<Lead | null>(null);
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [telefone, setTelefone] = useState('');
@@ -27,7 +27,7 @@ export default function ContatosPage() {
 
   const savedContacts = leads.filter((l) => l.salvar_contato);
 
-  const openEditModal = (lead: any) => {
+  const openEditModal = (lead: Lead) => {
     setEditLead(lead);
     setNome(lead.nome || '');
     setEmail(lead.email || '');

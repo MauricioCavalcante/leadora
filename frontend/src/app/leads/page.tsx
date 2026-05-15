@@ -110,7 +110,7 @@ export default function LeadsPage() {
           finalInteresseId = createdInt.id;
           if (fetchInteresses) fetchInteresses(token, selectedClinicaId);
         } else {
-          finalInteresseId = null;
+          finalInteresseId = '';
         }
       }
 
@@ -129,7 +129,7 @@ export default function LeadsPage() {
           finalOrigemId = createdOrigem.id;
           if (fetchOrigens) fetchOrigens(token, selectedClinicaId);
         } else {
-          finalOrigemId = null;
+          finalOrigemId = '';
         }
       }
 
