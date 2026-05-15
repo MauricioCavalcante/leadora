@@ -96,13 +96,14 @@ export default function FupsPage() {
               </thead>
               <tbody className="divide-y divide-slate-50">
                 {leads.map((l) => {
-                  const status1 = getFupStatus(l.created_at, l.data_primeiro_contato, 1, l.fup1_feito);
-                  const status2 = getFupStatus(l.created_at, l.data_primeiro_contato, 8, l.fup2_feito);
-                  const status3 = getFupStatus(l.created_at, l.data_primeiro_contato, 23, l.fup3_feito);
+                  // Dentro do leads.map((l) => { ...
+                  const status1 = getFupStatus(l.created_at ?? undefined, l.data_primeiro_contato ?? undefined, 1, l.fup1_feito);
+                  const status2 = getFupStatus(l.created_at ?? undefined, l.data_primeiro_contato ?? undefined, 8, l.fup2_feito);
+                  const status3 = getFupStatus(l.created_at ?? undefined, l.data_primeiro_contato ?? undefined, 23, l.fup3_feito);
 
-                  const date1 = getFupDate(l.created_at, l.data_primeiro_contato, 1);
-                  const date2 = getFupDate(l.created_at, l.data_primeiro_contato, 8);
-                  const date3 = getFupDate(l.created_at, l.data_primeiro_contato, 23);
+                  const date1 = getFupDate(l.created_at ?? undefined, l.data_primeiro_contato ?? undefined, 1);
+                  const date2 = getFupDate(l.created_at ?? undefined, l.data_primeiro_contato ?? undefined, 8);
+                  const date3 = getFupDate(l.created_at ?? undefined, l.data_primeiro_contato ?? undefined, 23);
 
                   return (
                     <tr key={l.id} className="hover:bg-slate-50/60 transition">
@@ -146,8 +147,8 @@ export default function FupsPage() {
                             type="button"
                             onClick={() => handleUpdateFup(l.id, { fup1_feito: !l.fup1_feito })}
                             className={`w-6 h-6 rounded-full border flex items-center justify-center transition cursor-pointer select-none shrink-0 ${l.fup1_feito
-                                ? 'bg-brand-green border-brand-green text-white shadow'
-                                : 'bg-white border-slate-300 text-slate-300 hover:border-slate-400'
+                              ? 'bg-brand-green border-brand-green text-white shadow'
+                              : 'bg-white border-slate-300 text-slate-300 hover:border-slate-400'
                               }`}
                           >
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
@@ -174,8 +175,8 @@ export default function FupsPage() {
                             type="button"
                             onClick={() => handleUpdateFup(l.id, { fup2_feito: !l.fup2_feito })}
                             className={`w-6 h-6 rounded-full border flex items-center justify-center transition cursor-pointer select-none shrink-0 ${l.fup2_feito
-                                ? 'bg-brand-green border-brand-green text-white shadow'
-                                : 'bg-white border-slate-300 text-slate-300 hover:border-slate-400'
+                              ? 'bg-brand-green border-brand-green text-white shadow'
+                              : 'bg-white border-slate-300 text-slate-300 hover:border-slate-400'
                               }`}
                           >
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
@@ -202,8 +203,8 @@ export default function FupsPage() {
                             type="button"
                             onClick={() => handleUpdateFup(l.id, { fup3_feito: !l.fup3_feito })}
                             className={`w-6 h-6 rounded-full border flex items-center justify-center transition cursor-pointer select-none shrink-0 ${l.fup3_feito
-                                ? 'bg-brand-green border-brand-green text-white shadow'
-                                : 'bg-white border-slate-300 text-slate-300 hover:border-slate-400'
+                              ? 'bg-brand-green border-brand-green text-white shadow'
+                              : 'bg-white border-slate-300 text-slate-300 hover:border-slate-400'
                               }`}
                           >
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
@@ -218,15 +219,14 @@ export default function FupsPage() {
                         <select
                           value={l.resultado_fup || ''}
                           onChange={(e) => handleUpdateFup(l.id, { resultado_fup: e.target.value === '' ? null : e.target.value })}
-                          className={`text-xs font-bold px-3 py-1 rounded-xl border focus:outline-none transition cursor-pointer ${
-                            l.resultado_fup === 'DESISTIU'
+                          className={`text-xs font-bold px-3 py-1 rounded-xl border focus:outline-none transition cursor-pointer ${l.resultado_fup === 'DESISTIU'
                               ? 'bg-rose-50 text-rose-700 border-rose-200'
                               : l.resultado_fup === 'MARCOU'
-                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                              : l.resultado_fup === 'SEM_RETORNO'
-                              ? 'bg-amber-50 text-amber-700 border-amber-200'
-                              : 'bg-slate-50 text-slate-600 border-slate-200'
-                          }`}
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                : l.resultado_fup === 'SEM_RETORNO'
+                                  ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                  : 'bg-slate-50 text-slate-600 border-slate-200'
+                            }`}
                         >
                           <option value="">Nenhum</option>
                           <option value="MARCOU">Marcou</option>
